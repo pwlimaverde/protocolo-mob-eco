@@ -49,7 +49,7 @@ class UploadRemessaController extends GetxController
   @override
   void onReady() {
     super.onReady();
-    setUploadOps();
+    setUploadRemessas();
   }
 
   @override
@@ -83,7 +83,7 @@ class UploadRemessaController extends GetxController
     uploadRemessaListError.clear();
   }
 
-  Future<void> setUploadOps() async {
+  Future<void> setUploadRemessas() async {
     _clearLists();
     designSystemController.statusLoad(true);
     await _uploadRemessas(

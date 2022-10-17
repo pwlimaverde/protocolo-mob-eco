@@ -74,7 +74,7 @@ _todasRemessasList() {
             child: Card(
               elevation: 0.5,
               child: SizedBox(
-                width: 615,
+                width: 750,
                 child: ListTile(
                   title: Text(nomeRemessa),
                   subtitle: Column(
@@ -90,10 +90,16 @@ _todasRemessasList() {
                       Text(
                         "Quantidade de Protocolos: ${remessaModel.quantidadeProtocolos.toString()}",
                       ),
+                      remessaModel.arquivosInvalidos != null
+                          ? Text(
+                              "Arquivos inválidos: ${remessaModel.arquivosInvalidos.toString()}",
+                              style: const TextStyle(color: Colors.red),
+                            )
+                          : Container(),
                     ],
                   ),
                   trailing: SizedBox(
-                    width: 115,
+                    width: 210,
                     height: 100,
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -106,6 +112,18 @@ _todasRemessasList() {
                           width: 15,
                         ),
                         designSystemController.iconDownloadXlsx(
+                          filtro: remessaModel,
+                        ),
+                        const SizedBox(
+                          width: 15,
+                        ),
+                        designSystemController.iconUploadNomesArquivos(
+                          filtro: remessaModel,
+                        ),
+                        const SizedBox(
+                          width: 15,
+                        ),
+                        designSystemController.iconDownloadAnalitic(
                           filtro: remessaModel,
                         ),
                       ],
