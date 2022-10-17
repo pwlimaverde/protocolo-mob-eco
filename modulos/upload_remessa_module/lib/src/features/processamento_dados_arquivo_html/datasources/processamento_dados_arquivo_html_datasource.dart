@@ -73,6 +73,9 @@ List<int> _idsClientes({required List<int> filtro}) {
       listIdsBoletos.add(id);
     }
   }
+  listIdsBoletos.sort(
+    (a, b) => a.compareTo(b),
+  );
   return listIdsBoletos;
 }
 

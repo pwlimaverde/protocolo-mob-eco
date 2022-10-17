@@ -19,6 +19,14 @@ class CoreModuleBindings implements Bindings {
         carregarBoletosFirebaseUsecase: CarregarBoletosFirebaseUsecase(
           datasource: CarregarBoletosFirebaseDatasource(),
         ),
+        mapeamentoNomesArquivoHtmlUsecase: MapeamentoNomesArquivoHtmlUsecase(
+          datasource: MapeamentoNomesArquivoHtmlDatasource(),
+        ),
+        uploadArquivoHtmlPresenter: UploadArquivoHtmlPresenter(),
+        uploadAnaliseArquivosFirebaseUsecase:
+            UploadAnaliseArquivosFirebaseUsecase(
+          datasource: UploadAnaliseArquivosFirebaseDatasource(),
+        ),
       ),
       permanent: true,
     );
