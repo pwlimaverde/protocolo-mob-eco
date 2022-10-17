@@ -8,17 +8,25 @@ class RemessaModel {
   final Timestamp upload;
   final List<dynamic> idsClientes;
   final int quantidadeProtocolos;
+  final bool isOk;
+  List<dynamic>? arquivosInvalidos;
+  List<dynamic>? protocolosOk;
+  List<dynamic>? protocolosSemBoletos;
   RemessaModel({
     required this.nomeArquivo,
     required this.data,
     required this.upload,
     required this.idsClientes,
+    this.arquivosInvalidos,
+    this.protocolosOk,
+    this.protocolosSemBoletos,
     String? id,
   })  : quantidadeProtocolos = idsClientes.length,
-        _id = id ?? const Uuid().v1();
+        _id = id ?? const Uuid().v1(),
+        isOk = protocolosOk != null
+            ? listEquals(idsClientes, protocolosOk)
+            : false;
 
-  // ignore: prefer_final_fields
-  // id = const Uuid().v1();
   String get id => _id;
 
   Map<String, dynamic> toMap() {
@@ -28,6 +36,9 @@ class RemessaModel {
       'data': data,
       'upload': upload,
       'idsClientes': idsClientes,
+      'Arquivos invalidos': arquivosInvalidos,
+      'Protocolos ok': arquivosInvalidos,
+      'Protocolos sem boletos': protocolosSemBoletos,
     };
     return map;
   }
@@ -39,6 +50,9 @@ class RemessaModel {
       upload: map['upload'],
       idsClientes: map['idsClientes'],
       id: map['id'],
+      arquivosInvalidos: map['Arquivos invalidos'],
+      protocolosOk: map['Protocolos ok'],
+      protocolosSemBoletos: map['Protocolos sem boletos'],
     );
     return model;
   }

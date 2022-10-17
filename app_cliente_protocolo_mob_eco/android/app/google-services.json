@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "971198538208",
+    "project_id": "protocolo-mob-eco-release",
+    "storage_bucket": "protocolo-mob-eco-release.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:971198538208:android:68d8bdcf059b2716b88b85",
+        "android_client_info": {
+          "package_name": "br.com.protocolo_mob_eco.app_cliente_protocolo_mob_eco"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "971198538208-g1ctbi17ds1rr9rb2kvo6cotj56fuu7c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCfUSrmkBfQMLJ1tAeA0D4O7VqA1uqHT8A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "971198538208-g1ctbi17ds1rr9rb2kvo6cotj56fuu7c.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

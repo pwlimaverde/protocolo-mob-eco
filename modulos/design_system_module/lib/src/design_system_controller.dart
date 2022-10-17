@@ -38,7 +38,7 @@ class DesignSystemController extends GetxController
 
   Future<void> _carregarImagemModelo() async {
     final gsReference = FirebaseStorage.instance.refFromURL(
-        "gs://protocolo-mob-ser.appspot.com/modelo/BASE-PROTOCOLO-MOB.jpeg");
+        "gs://protocolo-mob-eco-release.appspot.com/modelo/BASE-PROTOCOLO-MOB.jpeg");
     _imagemModelo(await gsReference.getData());
   }
 
@@ -61,7 +61,7 @@ class DesignSystemController extends GetxController
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(hederHeight),
         child: HeaderWidget(
-          titulo: "Sistema Protocolos MOB - SER",
+          titulo: "Sistema Protocolos MOB - ECO",
           subtitulo: versaoAtual,
           actions: coreModuleController.pageAtual.value == 2
               ? <Widget>[
@@ -124,11 +124,64 @@ class DesignSystemController extends GetxController
   //   opsController.busca.value = null;
   //   _setBuscando();
   // }
+  Widget iconUploadNomesArquivos({required RemessaModel filtro}) {
+    return IconButton(
+      padding: const EdgeInsets.all(0),
+      alignment: Alignment.center,
+      icon: SizedBox(
+        height: 100,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              size: 20,
+              filtro.isOk ? Icons.check : Icons.analytics,
+              color: filtro.isOk ? Colors.green : Colors.grey,
+            ),
+            const Text(
+              "Analise",
+              style: TextStyle(fontSize: 12),
+            ),
+          ],
+        ),
+      ),
+      onPressed: (() => _setUploadNomesArquivos(remessa: filtro)),
+    );
+  }
+
+  Widget iconDownloadAnalitic({required RemessaModel filtro}) {
+    return IconButton(
+      padding: const EdgeInsets.all(0),
+      alignment: Alignment.center,
+      icon: SizedBox(
+        height: 100,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              size: 20,
+              filtro.isOk ? Icons.check : Icons.download_done_outlined,
+              color: filtro.isOk ? Colors.green : Colors.red,
+            ),
+            const Text(
+              "Relatorio",
+              style: TextStyle(fontSize: 10),
+            ),
+          ],
+        ),
+      ),
+      onPressed: (() {
+        _downloadAnalise(filtro: filtro);
+      }),
+    );
+  }
 
   Widget iconDownloadXlsx({required RemessaModel filtro}) {
     return IconButton(
       padding: const EdgeInsets.all(0),
-      alignment: Alignment.centerLeft,
+      alignment: Alignment.center,
       icon: const Icon(
         size: 40,
         Icons.download,
@@ -143,7 +196,7 @@ class DesignSystemController extends GetxController
   Widget iconButtonPrint({required RemessaModel filtro}) {
     return IconButton(
       padding: const EdgeInsets.all(0),
-      alignment: Alignment.centerLeft,
+      alignment: Alignment.center,
       icon: const Icon(
         size: 40,
         Icons.print,
@@ -162,8 +215,19 @@ class DesignSystemController extends GetxController
     );
   }
 
+  void _setUploadNomesArquivos({required RemessaModel remessa}) {
+    if (!remessa.isOk) {
+      remessasController.setUploadNomesArquivos(remessa: remessa);
+    } else {
+      designSystemController.message(MessageModel.info(
+        title: "Analise de Arquivos",
+        message: "Arquivos OK!",
+      ));
+    }
+  }
+
   void _setUpload() {
-    uploadRemessaController.setUploadOps();
+    uploadRemessaController.setUploadRemessas();
   }
 
   Widget _body({
@@ -209,6 +273,132 @@ class DesignSystemController extends GetxController
     );
   }
 
+  void _downloadAnalise({required RemessaModel filtro}) async {
+    if (!filtro.isOk && filtro.protocolosSemBoletos != null) {
+      List<BoletoModel> listaBoletosErro = [];
+      final boletosAnalise =
+          await remessasController.carregarBoletos(remessa: filtro);
+
+      for (dynamic idErro in filtro.protocolosSemBoletos!) {
+        for (BoletoModel boleto in boletosAnalise) {
+          if (boleto.idCliente == idErro) {
+            listaBoletosErro.add(boleto);
+          }
+        }
+      }
+
+      const camposKeys = <String>[
+        "ID Cliente",
+        "Cliente",
+        "Documento",
+        "Email",
+        "Telefone Fixo",
+        "Telefone Movel",
+        "ID Contrato",
+        "Data Habilitacao contrato",
+        "Número de Boleto",
+        "Forma de Cobrança",
+        "Data Vencimento Fatura",
+        "Valor Fatura",
+        "Data Emissao Fatura",
+        "Arquivo",
+        "Data Impressão Fatura",
+        "UF",
+        "Cidade",
+        "Bairro",
+        "Tipo Logradouro",
+        "Logradouro",
+        "Numero",
+        "CEP",
+        "Solicitante da Geração",
+        "ID Fatura",
+        "Referencia",
+      ];
+
+      var excel = Excel.createExcel();
+
+      Sheet sheetObject = excel[excel.getDefaultSheet()!];
+      CellStyle cellStyleTitulos = CellStyle(
+        horizontalAlign: HorizontalAlign.Center,
+        bold: true,
+      );
+
+      sheetObject.merge(
+          CellIndex.indexByString("A1"), CellIndex.indexByString("W1"),
+          customValue:
+              "SISTEMA DE REGISTRO DE PROTOCOLO - PROTOCOLOS SEM ARQUIVOS DE BOLETO - ${filtro.nomeArquivo}");
+
+      var titulo = sheetObject
+          .cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0));
+      titulo.cellStyle = cellStyleTitulos;
+
+      var emissao = sheetObject
+          .cell(CellIndex.indexByColumnRow(columnIndex: 23, rowIndex: 0));
+      emissao.value = "Data Emissão :";
+      emissao.cellStyle = cellStyleTitulos;
+
+      var dataEmissao = sheetObject
+          .cell(CellIndex.indexByColumnRow(columnIndex: 24, rowIndex: 0));
+      dataEmissao.value = dataFormatoDDMMYYYY.format(filtro.data.toDate());
+      dataEmissao.cellStyle = cellStyleTitulos;
+
+      for (var coluna = 0; coluna < camposKeys.length; coluna++) {
+        var cell = sheetObject
+            .cell(CellIndex.indexByColumnRow(columnIndex: coluna, rowIndex: 1));
+        cell.value = camposKeys[coluna];
+        cell.cellStyle = cellStyleTitulos;
+      }
+
+      for (BoletoModel boleto in listaBoletosErro) {
+        int indexBoleto = listaBoletosErro.indexOf(boleto) + 2;
+        final listValores = boleto.toListXlsx();
+        int indexValor = 0;
+        for (dynamic valor in listValores) {
+          sheetObject
+              .cell(CellIndex.indexByColumnRow(
+                  columnIndex: indexValor, rowIndex: indexBoleto))
+              .value = valor;
+          indexValor++;
+        }
+      }
+
+      sheetObject.setColWidth(0, 10);
+      sheetObject.setColAutoFit(1);
+      sheetObject.setColWidth(2, 0);
+      sheetObject.setColWidth(3, 0);
+      sheetObject.setColWidth(4, 0);
+      sheetObject.setColWidth(5, 0);
+      sheetObject.setColAutoFit(6);
+      sheetObject.setColWidth(7, 0);
+      sheetObject.setColWidth(8, 0);
+      sheetObject.setColWidth(9, 0);
+      sheetObject.setColAutoFit(10);
+      sheetObject.setColWidth(11, 0);
+      sheetObject.setColWidth(12, 0);
+      sheetObject.setColWidth(13, 0);
+      sheetObject.setColWidth(14, 0);
+      for (var coluna = 15; coluna < camposKeys.length; coluna++) {
+        sheetObject.setColAutoFit(coluna);
+      }
+      sheetObject.setColWidth(17, 30);
+      sheetObject.setColWidth(18, 0);
+      sheetObject.setColWidth(22, 0);
+      sheetObject.setColWidth(24, 12);
+      excel.save(fileName: "${filtro.nomeArquivo} - ERRO FILTRO.xlsx");
+    } else if (!filtro.isOk) {
+      designSystemController.message(MessageModel.error(
+        title: "Analise de Arquivos",
+        message:
+            "Faça o upload dos nomes dos arquivos em csv para verificação!",
+      ));
+    } else {
+      designSystemController.message(MessageModel.info(
+        title: "Analise de Arquivos",
+        message: "Arquivos OK!",
+      ));
+    }
+  }
+
   void _downloadXlsx({required RemessaModel filtro}) async {
     final boletos = await remessasController.carregarBoletos(remessa: filtro);
     const camposKeys = <String>[
@@ -237,11 +427,6 @@ class DesignSystemController extends GetxController
       "Solicitante da Geração",
       "ID Fatura",
       "Referencia",
-      "Cód. De Barras",
-      "Receb Graf",
-      "Imp em massa",
-      "Term Imp",
-      "Upload",
     ];
 
     var excel = Excel.createExcel();
@@ -253,13 +438,23 @@ class DesignSystemController extends GetxController
     );
 
     sheetObject.merge(
-        CellIndex.indexByString("A1"), CellIndex.indexByString("AD1"),
+        CellIndex.indexByString("A1"), CellIndex.indexByString("W1"),
         customValue:
             "SISTEMA DE REGISTRO DE PROTOCOLO - ${filtro.nomeArquivo}");
 
     var titulo = sheetObject
         .cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0));
     titulo.cellStyle = cellStyleTitulos;
+
+    var emissao = sheetObject
+        .cell(CellIndex.indexByColumnRow(columnIndex: 23, rowIndex: 0));
+    emissao.value = "Data Emissão :";
+    emissao.cellStyle = cellStyleTitulos;
+
+    var dataEmissao = sheetObject
+        .cell(CellIndex.indexByColumnRow(columnIndex: 24, rowIndex: 0));
+    dataEmissao.value = dataFormatoDDMMYYYY.format(filtro.data.toDate());
+    dataEmissao.cellStyle = cellStyleTitulos;
 
     for (var coluna = 0; coluna < camposKeys.length; coluna++) {
       var cell = sheetObject
@@ -280,10 +475,6 @@ class DesignSystemController extends GetxController
             .value = valor;
         indexValor++;
       }
-      sheetObject
-          .cell(CellIndex.indexByColumnRow(
-              columnIndex: indexValor, rowIndex: indexBoleto))
-          .value = _gerarCodigoDeBarras(boleto: boleto);
     }
 
     sheetObject.setColWidth(0, 10);
@@ -307,22 +498,21 @@ class DesignSystemController extends GetxController
     sheetObject.setColWidth(17, 30);
     sheetObject.setColWidth(18, 0);
     sheetObject.setColWidth(22, 0);
-    sheetObject.setColWidth(23, 0);
-    sheetObject.setColWidth(24, 0);
-    sheetObject.setColWidth(25, 25);
+    sheetObject.setColWidth(24, 12);
     excel.save(fileName: "${filtro.nomeArquivo} - FILTRO.xlsx");
   }
 
   String _gerarCodigoDeBarras({required BoletoModel boleto}) {
-    const sufixo = "ALJ";
-    final codBoleto = boleto.numeroDeBoleto;
-    String complementoZero = "";
-    for (var zero = 0; zero < 14 - (codBoleto!.length); zero++) {
-      complementoZero = "${complementoZero}0";
-    }
-    final tipo = boleto.formaDeCobranca!.contains("CARNE") ? "C" : "B";
-    const prefixo = "MB";
-    return "$prefixo$tipo$complementoZero$codBoleto$sufixo";
+    // const sufixo = "ALJ";
+    final codBoleto = boleto.numeroDeBoleto.toString();
+    // String complementoZero = "";
+    // for (var zero = 0; zero < 14 - (codBoleto!.length); zero++) {
+    //   complementoZero = "${complementoZero}0";
+    // }
+    // final tipo = boleto.formaDeCobranca!.contains("CARNE") ? "C" : "B";
+    // const prefixo = "MB";
+    // final padraoNovo = "$prefixo$tipo$complementoZero$codBoleto$sufixo";
+    return codBoleto;
   }
 
   _showPrintDialog({required RemessaModel filtro}) {
