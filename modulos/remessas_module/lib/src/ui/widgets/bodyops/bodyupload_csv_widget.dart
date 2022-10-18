@@ -91,10 +91,12 @@ _todasRemessasList() {
                         "Quantidade de Protocolos: ${remessaModel.quantidadeProtocolos.toString()}",
                       ),
                       remessaModel.arquivosInvalidos != null
-                          ? Text(
-                              "Arquivos inválidos: ${remessaModel.arquivosInvalidos.toString()}",
-                              style: const TextStyle(color: Colors.red),
-                            )
+                          ? remessaModel.arquivosInvalidos!.isNotEmpty
+                              ? Text(
+                                  "Arquivos inválidos: ${remessaModel.arquivosInvalidos.toString()}",
+                                  style: const TextStyle(color: Colors.red),
+                                )
+                              : Container()
                           : Container(),
                     ],
                   ),

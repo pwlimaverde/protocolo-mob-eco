@@ -25,6 +25,7 @@ class DesignSystemController extends GetxController
       message: message,
     );
     _carregarImagemModelo();
+    _carregarSufixo();
   }
 
   //Controller de Loading
@@ -36,10 +37,28 @@ class DesignSystemController extends GetxController
   //Cache de Imadem da base do protocolo
   final _imagemModelo = Rxn<Uint8List>();
 
+  //Configuração Sufixo
+  final _sufixo = Rxn<String>();
+
+  bool get isSufixo {
+    return _sufixo.value != null && _sufixo.value != "" ? true : false;
+  }
+
   Future<void> _carregarImagemModelo() async {
     final gsReference = FirebaseStorage.instance.refFromURL(
         "gs://protocolo-mob-eco-release.appspot.com/modelo/BASE-PROTOCOLO-MOB.jpeg");
     _imagemModelo(await gsReference.getData());
+  }
+
+  Future<void> _carregarSufixo() async {
+    final reference = await FirebaseFirestore.instance
+        .collection("configuracao")
+        .doc("protocolo")
+        .get();
+    final sufixo = reference.data();
+    if (sufixo != null) {
+      _sufixo(sufixo["sufixo"].toString());
+    }
   }
 
   //Widgets Pages
@@ -162,8 +181,16 @@ class DesignSystemController extends GetxController
           children: [
             Icon(
               size: 20,
-              filtro.isOk ? Icons.check : Icons.download_done_outlined,
-              color: filtro.isOk ? Colors.green : Colors.red,
+              filtro.isOk
+                  ? Icons.check
+                  : filtro.protocolosSemBoletos == null
+                      ? Icons.error_outline_outlined
+                      : Icons.error,
+              color: filtro.isOk
+                  ? Colors.green
+                  : filtro.protocolosSemBoletos == null
+                      ? Colors.grey
+                      : Colors.red,
             ),
             const Text(
               "Relatorio",
@@ -437,24 +464,55 @@ class DesignSystemController extends GetxController
       bold: true,
     );
 
-    sheetObject.merge(
-        CellIndex.indexByString("A1"), CellIndex.indexByString("W1"),
-        customValue:
-            "SISTEMA DE REGISTRO DE PROTOCOLO - ${filtro.nomeArquivo}");
+    if (isSufixo) {
+      sheetObject.merge(
+          CellIndex.indexByString("A1"), CellIndex.indexByString("X1"),
+          customValue:
+              "SISTEMA DE REGISTRO DE PROTOCOLO - ${filtro.nomeArquivo}");
 
-    var titulo = sheetObject
-        .cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0));
-    titulo.cellStyle = cellStyleTitulos;
+      var titulo = sheetObject
+          .cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0));
+      titulo.cellStyle = cellStyleTitulos;
 
-    var emissao = sheetObject
-        .cell(CellIndex.indexByColumnRow(columnIndex: 23, rowIndex: 0));
-    emissao.value = "Data Emissão :";
-    emissao.cellStyle = cellStyleTitulos;
+      var emissao = sheetObject
+          .cell(CellIndex.indexByColumnRow(columnIndex: 24, rowIndex: 0));
+      emissao.value = "Data Emissão :";
+      emissao.cellStyle = cellStyleTitulos;
 
-    var dataEmissao = sheetObject
-        .cell(CellIndex.indexByColumnRow(columnIndex: 24, rowIndex: 0));
-    dataEmissao.value = dataFormatoDDMMYYYY.format(filtro.data.toDate());
-    dataEmissao.cellStyle = cellStyleTitulos;
+      var dataEmissao = sheetObject
+          .cell(CellIndex.indexByColumnRow(columnIndex: 25, rowIndex: 0));
+      dataEmissao.value = dataFormatoDDMMYYYY.format(filtro.data.toDate());
+      dataEmissao.cellStyle = cellStyleTitulos;
+
+      var codDeBarras = sheetObject
+          .cell(CellIndex.indexByColumnRow(columnIndex: 25, rowIndex: 1));
+      codDeBarras.value = "Cód. De Barras";
+      codDeBarras.cellStyle = cellStyleTitulos;
+      sheetObject.setColWidth(8, 0);
+      sheetObject.setColWidth(24, 15);
+      sheetObject.setColWidth(25, 25);
+    } else {
+      sheetObject.merge(
+          CellIndex.indexByString("A1"), CellIndex.indexByString("W1"),
+          customValue:
+              "SISTEMA DE REGISTRO DE PROTOCOLO - ${filtro.nomeArquivo}");
+
+      var titulo = sheetObject
+          .cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0));
+      titulo.cellStyle = cellStyleTitulos;
+
+      var emissao = sheetObject
+          .cell(CellIndex.indexByColumnRow(columnIndex: 23, rowIndex: 0));
+      emissao.value = "Data Emissão :";
+      emissao.cellStyle = cellStyleTitulos;
+
+      var dataEmissao = sheetObject
+          .cell(CellIndex.indexByColumnRow(columnIndex: 24, rowIndex: 0));
+      dataEmissao.value = dataFormatoDDMMYYYY.format(filtro.data.toDate());
+      dataEmissao.cellStyle = cellStyleTitulos;
+      sheetObject.setColAutoFit(8);
+      sheetObject.setColWidth(24, 12);
+    }
 
     for (var coluna = 0; coluna < camposKeys.length; coluna++) {
       var cell = sheetObject
@@ -465,15 +523,20 @@ class DesignSystemController extends GetxController
 
     for (BoletoModel boleto in boletos) {
       int indexBoleto = boletos.indexOf(boleto) + 2;
-      final listValores = boleto.toListXlsx();
       int indexValor = 0;
+      final listValores = boleto.toListXlsx();
       for (dynamic valor in listValores) {
-        // print(valor);
         sheetObject
             .cell(CellIndex.indexByColumnRow(
                 columnIndex: indexValor, rowIndex: indexBoleto))
             .value = valor;
         indexValor++;
+      }
+      if (isSufixo) {
+        sheetObject
+            .cell(CellIndex.indexByColumnRow(
+                columnIndex: indexValor, rowIndex: indexBoleto))
+            .value = _gerarCodigoDeBarras(boleto: boleto);
       }
     }
 
@@ -485,7 +548,6 @@ class DesignSystemController extends GetxController
     sheetObject.setColWidth(5, 0);
     sheetObject.setColAutoFit(6);
     sheetObject.setColWidth(7, 0);
-    sheetObject.setColWidth(8, 0);
     sheetObject.setColWidth(9, 0);
     sheetObject.setColAutoFit(10);
     sheetObject.setColWidth(11, 0);
@@ -498,21 +560,24 @@ class DesignSystemController extends GetxController
     sheetObject.setColWidth(17, 30);
     sheetObject.setColWidth(18, 0);
     sheetObject.setColWidth(22, 0);
-    sheetObject.setColWidth(24, 12);
     excel.save(fileName: "${filtro.nomeArquivo} - FILTRO.xlsx");
   }
 
   String _gerarCodigoDeBarras({required BoletoModel boleto}) {
-    // const sufixo = "ALJ";
-    final codBoleto = boleto.numeroDeBoleto.toString();
-    // String complementoZero = "";
-    // for (var zero = 0; zero < 14 - (codBoleto!.length); zero++) {
-    //   complementoZero = "${complementoZero}0";
-    // }
-    // final tipo = boleto.formaDeCobranca!.contains("CARNE") ? "C" : "B";
-    // const prefixo = "MB";
-    // final padraoNovo = "$prefixo$tipo$complementoZero$codBoleto$sufixo";
-    return codBoleto;
+    if (isSufixo) {
+      final sufixo = _sufixo.toString().substring(0, 3);
+      final codBoleto = boleto.numeroDeBoleto.toString();
+      String complementoZero = "";
+      for (var zero = 0; zero < 14 - (codBoleto.length); zero++) {
+        complementoZero = "${complementoZero}0";
+      }
+      final tipo = boleto.formaDeCobranca!.contains("CARNE") ? "C" : "B";
+      const prefixo = "MB";
+      final padraoNovo = "$prefixo$tipo$complementoZero$codBoleto$sufixo";
+      return padraoNovo;
+    } else {
+      return boleto.numeroDeBoleto.toString();
+    }
   }
 
   _showPrintDialog({required RemessaModel filtro}) {
