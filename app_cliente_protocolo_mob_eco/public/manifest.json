@@ -1,11 +1,12 @@
 {
-    "name": "app_cliente_protocolo_mob_eco",
-    "short_name": "app_cliente_protocolo_mob_eco",
-    "start_url": ".",
+    "name": "MOB-ECO: Sistema de Gerenciamento de Protocolo de Entregas",
+    "short_name": "MOB-ECO",
+    "start_url": "/",
+    "scope": "https://protocolo-mob-eco-release.web.app",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Sistema para geração de protocolos MOB-ECO",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
