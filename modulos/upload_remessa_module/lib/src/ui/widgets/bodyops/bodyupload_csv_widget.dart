@@ -83,7 +83,7 @@ _uploadRemessaList() {
             child: Card(
               elevation: 0.5,
               child: SizedBox(
-                width: 550,
+                width: 650,
                 child: ListTile(
                   title: Text(nomeRemessa),
                   subtitle: Column(
@@ -99,6 +99,12 @@ _uploadRemessaList() {
                       Text(
                         "Quantidade de Protocolos: ${remessaModel.quantidadeProtocolos.toString()}",
                       ),
+                      remessaModel.arquivosInvalidos != null
+                          ? Text(
+                              "Arquivos inválidos: ${remessaModel.arquivosInvalidos.toString()}",
+                              style: const TextStyle(color: Colors.red),
+                            )
+                          : Container(),
                     ],
                   ),
                   trailing: SizedBox(
@@ -146,7 +152,7 @@ _duplicadasRemessaList() {
             child: Card(
               elevation: 0.5,
               child: SizedBox(
-                width: 550,
+                width: 650,
                 child: ListTile(
                   title: Text(nomeRemessa),
                   subtitle: Column(
@@ -162,6 +168,12 @@ _duplicadasRemessaList() {
                       Text(
                         "Quantidade de Protocolos: ${remessaModel.quantidadeProtocolos.toString()}",
                       ),
+                      remessaModel.arquivosInvalidos != null
+                          ? Text(
+                              "Arquivos inválidos: ${remessaModel.arquivosInvalidos.toString()}",
+                              style: const TextStyle(color: Colors.red),
+                            )
+                          : Container(),
                     ],
                   ),
                   trailing: SizedBox(
