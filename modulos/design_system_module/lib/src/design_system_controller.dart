@@ -165,7 +165,11 @@ class DesignSystemController extends GetxController
           ],
         ),
       ),
-      onPressed: (() => _setUploadNomesArquivos(remessa: filtro)),
+      onPressed: (() {
+        // componentLoad(filtro.id);
+        _setUploadNomesArquivos(remessa: filtro);
+        // componentLoad(null);
+      }),
     );
   }
 
