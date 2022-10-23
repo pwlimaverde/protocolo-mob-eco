@@ -24,8 +24,6 @@ class DesignSystemController extends GetxController
     messageListener(
       message: message,
     );
-    _carregarImagemModelo();
-    _carregarSufixo();
   }
 
   //Controller de Loading
@@ -33,33 +31,6 @@ class DesignSystemController extends GetxController
 
   //Controller de Messages
   final message = Rxn<MessageModel>();
-
-  //Cache de Imadem da base do protocolo
-  final _imagemModelo = Rxn<Uint8List>();
-
-  //Configuração Sufixo
-  final _sufixo = Rxn<String>();
-
-  bool get isSufixo {
-    return _sufixo.value != null && _sufixo.value != "" ? true : false;
-  }
-
-  Future<void> _carregarImagemModelo() async {
-    final gsReference = FirebaseStorage.instance.refFromURL(
-        "gs://protocolo-mob-eco-release.appspot.com/modelo/BASE-PROTOCOLO-MOB.jpeg");
-    _imagemModelo(await gsReference.getData());
-  }
-
-  Future<void> _carregarSufixo() async {
-    final reference = await FirebaseFirestore.instance
-        .collection("configuracao")
-        .doc("protocolo")
-        .get();
-    final sufixo = reference.data();
-    if (sufixo != null) {
-      _sufixo(sufixo["sufixo"].toString());
-    }
-  }
 
   //Widgets Pages
   Scaffold scaffold({
@@ -166,9 +137,7 @@ class DesignSystemController extends GetxController
         ),
       ),
       onPressed: (() {
-        // componentLoad(filtro.id);
         _setUploadNomesArquivos(remessa: filtro);
-        // componentLoad(null);
       }),
     );
   }
@@ -308,11 +277,6 @@ class DesignSystemController extends GetxController
         message: "Sem dados para limpar!",
       ));
     }
-
-    designSystemController.message(MessageModel.info(
-      title: "Limpesa da Analise",
-      message: "Dados limpos!",
-    ));
   }
 
   void _setUpload() {
@@ -526,7 +490,7 @@ class DesignSystemController extends GetxController
       bold: true,
     );
 
-    if (isSufixo) {
+    if (coreModuleController.isSufixo) {
       sheetObject.merge(
           CellIndex.indexByString("A1"), CellIndex.indexByString("X1"),
           customValue:
@@ -594,7 +558,7 @@ class DesignSystemController extends GetxController
             .value = valor;
         indexValor++;
       }
-      if (isSufixo) {
+      if (coreModuleController.isSufixo) {
         sheetObject
             .cell(CellIndex.indexByColumnRow(
                 columnIndex: indexValor, rowIndex: indexBoleto))
@@ -626,8 +590,8 @@ class DesignSystemController extends GetxController
   }
 
   String _gerarCodigoDeBarras({required BoletoModel boleto}) {
-    if (isSufixo) {
-      final sufixo = _sufixo.toString().substring(0, 3);
+    if (coreModuleController.isSufixo) {
+      final sufixo = coreModuleController.sufixo.toString().substring(0, 3);
       final codBoleto = boleto.numeroDeBoleto.toString();
       String complementoZero = "";
       for (var zero = 0; zero < 14 - (codBoleto.length); zero++) {
@@ -936,7 +900,7 @@ class DesignSystemController extends GetxController
     final boletos = await remessasController.carregarBoletos(remessa: filtro);
 
     final netImage = pw.MemoryImage(
-      _imagemModelo.value!,
+      remessasController.imagemModelo!,
     );
 
     final protocolos = await _protocolosListPrintWidget(
