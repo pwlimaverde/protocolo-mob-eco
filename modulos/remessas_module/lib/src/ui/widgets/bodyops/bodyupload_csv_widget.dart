@@ -75,7 +75,7 @@ _todasRemessasList() {
             child: Card(
               elevation: 0.5,
               child: SizedBox(
-                width: 600,
+                width: 700,
                 child: ListTile(
                   title: Text(nomeRemessa),
                   subtitle: Column(
@@ -113,7 +113,7 @@ _todasRemessasList() {
                     ],
                   ),
                   trailing: SizedBox(
-                    width: 210,
+                    width: 310,
                     height: 100,
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -138,6 +138,12 @@ _todasRemessasList() {
                           width: 15,
                         ),
                         designSystemController.iconDownloadAnalitic(
+                          filtro: remessaModel,
+                        ),
+                        const SizedBox(
+                          width: 15,
+                        ),
+                        designSystemController.iconLimparAnalitic(
                           filtro: remessaModel,
                         ),
                       ],

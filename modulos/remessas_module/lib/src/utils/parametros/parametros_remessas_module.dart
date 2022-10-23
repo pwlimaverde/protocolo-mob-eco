@@ -36,6 +36,23 @@ class ParametrosUploadAnaliseArquivos implements ParametersReturnResult {
   });
 }
 
+class ParametrosLimparAnaliseArquivos implements ParametersReturnResult {
+  final String idRemessa;
+  @override
+  final AppError error;
+  @override
+  final bool showRuntimeMilliseconds;
+  @override
+  final String nameFeature;
+
+  ParametrosLimparAnaliseArquivos({
+    required this.idRemessa,
+    required this.error,
+    required this.showRuntimeMilliseconds,
+    required this.nameFeature,
+  });
+}
+
 class ParametrosCarregarBoletos implements ParametersReturnResult {
   final RemessaModel remessaCarregada;
   @override
