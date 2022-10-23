@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:html' as html;
 
+import 'package:archive/archive.dart';
 import 'package:dependencies_module/dependencies_module.dart';
 import 'package:flutter/material.dart';
-import 'package:printing/printing.dart' as pwprint;
 import 'package:remessas_module/src/utils/errors/erros_remessas.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'utils/parametros/parametros_remessas_module.dart';
@@ -66,7 +66,6 @@ class RemessasController extends GetxController
   }
 
   Future<void> setUploadNomesArquivos({required RemessaModel remessa}) async {
-    loadingPosicaoRemessa(0);
     designSystemController.statusLoad(true);
     await _uploadNomesArquivos(
       arquivosDaRemessa: await _mapeamentoDadosArquivo(
@@ -155,11 +154,13 @@ class RemessasController extends GetxController
           "Protocolos sem boletos": idsError,
           "Arquivos invalidos": arquivosInvalidos
         };
-        // _enviarNovaAnalise(
-        //   analise: result,
-        //   model: remessa,
-        // );
-        _processamentoPdf(arquivosPdfOk: arquivosOk);
+        _enviarNovaAnalise(
+          analise: result,
+          model: remessa,
+        );
+
+        _processamentoPdf(
+            arquivosPdfOk: arquivosOk, nomeRemessa: remessa.nomeArquivo);
       }
     } catch (e) {
       designSystemController.message(
@@ -172,112 +173,33 @@ class RemessasController extends GetxController
     }
   }
 
-  final loadingPosicaoRemessa = 0.0.obs;
-
   Future<void> _processamentoPdf({
     required List<Map<String, dynamic>> arquivosPdfOk,
+    required String nomeRemessa,
   }) async {
-    final Iterable<Future<Map<String, dynamic>>> salvarPdfFuturo =
+    final Iterable<Future<Map<String, Uint8List>>> salvarPdfFuturo =
         arquivosPdfOk.map(_salvarPdf);
 
-    final Future<Iterable<Map<String, dynamic>>> waitedRemessas =
+    final Future<Iterable<Map<String, Uint8List>>> waitedRemessas =
         Future.wait(salvarPdfFuturo);
 
-    await waitedRemessas;
+    final teste = await waitedRemessas.then((value) => value.toList());
 
-    // int inicio = 0;
-    // int fim = 3;
-
-    // if (inicio < arquivosPdf.length) {
-    //   for (int grupo = inicio; grupo < inicio + 1; grupo++) {
-    //     List<Uint8List> filesIndx = _divisaoFiles(
-    //       indiceFinal: inicio + fim,
-    //       indiceInicial: inicio,
-    //       pdfs: arquivosPdf,
-    //     );
-    //     final PdfDocument document = PdfDocument();
-    //     document.pageSettings.margins = PdfMargins()..all = 5;
-
-    //     for (Uint8List pdf in filesIndx) {
-    //       print(filesIndx.length);
-    //       final indexPdf = arquivosPdf.indexOf(pdf);
-    //       loadingPosicaoRemessa(((indexPdf * 100) / arquivosPdf.length) / 100);
-    //       print(loadingPosicaoRemessa);
-
-    //       final PdfDocument documentAdd = PdfDocument(inputBytes: pdf);
-
-    //       for (var pageAdd = 0; pageAdd < documentAdd.pages.count; pageAdd++) {
-    //         final PdfPage page = document.pages.add();
-    //         final template = documentAdd.pages[pageAdd].createTemplate();
-    //         documentAdd.pageSettings.margins = PdfMargins()..all = 5;
-    //         page.graphics.drawPdfTemplate(template, const Offset(0, 5));
-    //       }
-    //       documentAdd.dispose();
-    //     }
-
-    //   }
-    // }
-
-    // List<dynamic> images = [];
-
-    // for (Uint8List arquivo in arquivosPdf) {
-    //   await for (var page in pwprint.Printing.raster(arquivo)) {
-    //     final image = page.asImage(); // ...or page.toPng()
-    //     images.add(image);
-    //   }
-    // }
-
-    // print(images.length);
-
-    // final PdfDocument document = PdfDocument();
-    // document.pageSettings.margins = PdfMargins()..all = 5;
-
-    // for (Uint8List arquivo in arquivosPdf) {
-    //   final PdfPage page = document.pages.add();
-    //   PdfBitmap image = PdfBitmap(arquivo);
-    //   page.graphics.drawImage(
-    //       image,
-    //       Rect.fromLTWH(
-    //           0, 0, page.getClientSize().width, page.getClientSize().height));
-    // }
-
-    // for (Uint8List pdf in arquivosPdf) {
-    //   // final indexPdf = arquivosPdf.indexOf(pdf);
-
-    //   // loadingPosicaoRemessa(((indexPdf * 100) / arquivosPdf.length) / 100);
-    //   // print(loadingPosicaoRemessa);
-
-    //   final PdfDocument documentAdd = PdfDocument(inputBytes: pdf);
-
-    //   for (var pageAdd = 0; pageAdd < documentAdd.pages.count; pageAdd++) {
-    //     // final PdfBitmap image = PdfBitmap(images[0]);
-
-    //     final PdfPage page = document.pages.add();
-
-    //     final template = documentAdd.pages[pageAdd].createTemplate();
-    //     documentAdd.pageSettings.margins = PdfMargins()..all = 5;
-    //     page.graphics.drawPdfTemplate(template, const Offset(0, 5));
-
-    //     // page.graphics.drawImage(image, const Rect.fromLTWH(0, 0, 500, 200));
-    //   }
-    //   documentAdd.dispose();
-    // }
-    // final List<int> bytes = document.saveSync();
-    // await saveAndLaunchFile(bytes, '$nomeDaRemessa - IMP EM LOTE.pdf');
-    // document.dispose();
+    _downloadFilesAsZIP(files: teste, nomeRemessa: nomeRemessa);
   }
 
-  Future<Map<String, dynamic>> _salvarPdf(
+  Future<Map<String, Uint8List>> _salvarPdf(
     Map<String, dynamic> mapArquivoPdf,
   ) async {
     final PdfDocument document =
         PdfDocument(inputBytes: mapArquivoPdf["Arquivo"]);
     document.pageSettings.margins = PdfMargins()..all = 5;
     final List<int> bytes = document.saveSync();
-    await saveAndLaunchFile(bytes,
-        '${mapArquivoPdf["Index"]} - ${mapArquivoPdf["ID Cliente"]} - ${mapArquivoPdf["ID Remessa"]}.pdf');
-    document.dispose();
-    return mapArquivoPdf;
+    Map<String, Uint8List> map = {
+      '${mapArquivoPdf["Index"] + 1} - ${mapArquivoPdf["ID Cliente"]} - ${mapArquivoPdf["ID Remessa"]}.pdf':
+          Uint8List.fromList(bytes)
+    };
+    return map;
   }
 
   Future<void> saveAndLaunchFile(List<int> bytes, String fileName) async {
@@ -288,21 +210,31 @@ class RemessasController extends GetxController
       ..click();
   }
 
-  List<Uint8List> _divisaoFiles({
-    required List<Uint8List> pdfs,
-    required int indiceInicial,
-    required int indiceFinal,
-  }) {
-    List<Uint8List> filesIndx = [];
-    for (int pdf = indiceInicial; pdf <= indiceFinal; pdf++) {
-      filesIndx.add(pdfs[pdf]);
+  _downloadFilesAsZIP(
+      {required List<Map<String, Uint8List>> files,
+      required String nomeRemessa}) {
+    var encoder = ZipEncoder();
+    var archive = Archive();
+
+    for (Map<String, Uint8List> file in files) {
+      ArchiveFile archiveFiles = ArchiveFile.noCompress(
+          file.keys.first, file.values.first.lengthInBytes, file.values.first);
+      archive.addFile(archiveFiles);
     }
-    return filesIndx;
+
+    final outputStream = OutputStream(
+      byteOrder: LITTLE_ENDIAN,
+    );
+    final bytes = encoder.encode(archive,
+        level: Deflate.BEST_COMPRESSION, output: outputStream);
+
+    saveAndLaunchFile(bytes!, "Remessa ordenada - $nomeRemessa.zip");
   }
 
-  Future<bool> _enviarNovaAnalise(
-      {required RemessaModel model,
-      required Map<String, List<int>> analise}) async {
+  Future<bool> _enviarNovaAnalise({
+    required RemessaModel model,
+    required Map<String, List<int>> analise,
+  }) async {
     final uploadFirebase = await uploadAnaliseArquivosFirebaseUsecase(
       parameters: ParametrosUploadAnaliseArquivos(
         error: ErroUploadArquivo(
