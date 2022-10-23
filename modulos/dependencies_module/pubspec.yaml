@@ -45,6 +45,7 @@ dependencies:
   font_awesome_flutter: ^10.2.1
   csv: ^5.0.1
   uuid: ^3.0.6
+  percent_indicator: ^4.2.2
 
 dev_dependencies:
   flutter_test:

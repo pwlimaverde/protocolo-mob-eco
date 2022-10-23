@@ -13,6 +13,9 @@ export 'package:intl/intl.dart';
 export 'package:font_awesome_flutter/font_awesome_flutter.dart';
 export 'package:csv/csv.dart';
 export 'package:uuid/uuid.dart';
+export 'package:percent_indicator/linear_percent_indicator.dart';
+export 'package:percent_indicator/circular_percent_indicator.dart';
+export 'package:percent_indicator/percent_indicator.dart';
 
 ///Modulos
 export 'package:design_system_module/design_system_module.dart';
