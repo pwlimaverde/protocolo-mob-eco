@@ -27,6 +27,10 @@ class CoreModuleBindings implements Bindings {
             UploadAnaliseArquivosFirebaseUsecase(
           datasource: UploadAnaliseArquivosFirebaseDatasource(),
         ),
+        limparAnaliseArquivosFirebaseUsecase:
+            LimparAnaliseArquivosFirebaseUsecase(
+          datasource: LimparAnaliseArquivosFirebaseDatasource(),
+        ),
       ),
       permanent: true,
     );

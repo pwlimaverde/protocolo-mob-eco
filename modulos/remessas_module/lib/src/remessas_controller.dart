@@ -6,6 +6,7 @@ import 'package:dependencies_module/dependencies_module.dart';
 import 'package:flutter/material.dart';
 import 'package:remessas_module/src/utils/errors/erros_remessas.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
+import 'features/limpar_analise_arquivos_firebase/domain/usecase/limpar_analise_arquivos_firebase_usecase.dart';
 import 'utils/parametros/parametros_remessas_module.dart';
 
 class RemessasController extends GetxController
@@ -14,6 +15,8 @@ class RemessasController extends GetxController
   final CarregarRemessasFirebaseUsecase carregarRemessasFirebaseUsecase;
   final CarregarBoletosFirebaseUsecase carregarBoletosFirebaseUsecase;
   final MapeamentoNomesArquivoHtmlUsecase mapeamentoNomesArquivoHtmlUsecase;
+  final LimparAnaliseArquivosFirebaseUsecase
+      limparAnaliseArquivosFirebaseUsecase;
   final UploadAnaliseArquivosFirebaseUsecase
       uploadAnaliseArquivosFirebaseUsecase;
   RemessasController({
@@ -21,6 +24,7 @@ class RemessasController extends GetxController
     required this.carregarRemessasFirebaseUsecase,
     required this.carregarBoletosFirebaseUsecase,
     required this.mapeamentoNomesArquivoHtmlUsecase,
+    required this.limparAnaliseArquivosFirebaseUsecase,
     required this.uploadAnaliseArquivosFirebaseUsecase,
   });
 
@@ -74,6 +78,21 @@ class RemessasController extends GetxController
       remessa: remessa,
     );
     designSystemController.statusLoad(false);
+  }
+
+  Future<void> limparAnalise({
+    required String idRemessa,
+  }) async {
+    await limparAnaliseArquivosFirebaseUsecase(
+      parameters: ParametrosLimparAnaliseArquivos(
+        error: ErroUploadArquivo(
+            message:
+                "Erro ao fazer o upload da Remessa para o banco de dados!"),
+        showRuntimeMilliseconds: true,
+        nameFeature: "upload firebase",
+        idRemessa: idRemessa,
+      ),
+    );
   }
 
   Future<void> _uploadNomesArquivos({

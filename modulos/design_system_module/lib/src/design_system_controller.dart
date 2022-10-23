@@ -224,6 +224,42 @@ class DesignSystemController extends GetxController
     );
   }
 
+  Widget iconLimparAnalitic({required RemessaModel filtro}) {
+    return IconButton(
+      padding: const EdgeInsets.all(0),
+      alignment: Alignment.center,
+      icon: SizedBox(
+        height: 100,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              size: 20,
+              filtro.protocolosSemBoletos != null ||
+                      filtro.protocolosOk != null ||
+                      filtro.arquivosInvalidos != null
+                  ? Icons.cleaning_services
+                  : Icons.cleaning_services_outlined,
+              color: filtro.protocolosSemBoletos != null ||
+                      filtro.protocolosOk != null ||
+                      filtro.arquivosInvalidos != null
+                  ? Colors.amber
+                  : Colors.grey,
+            ),
+            const Text(
+              "Limpar",
+              style: TextStyle(fontSize: 10),
+            ),
+          ],
+        ),
+      ),
+      onPressed: (() {
+        _limparAnalise(filtro: filtro);
+      }),
+    );
+  }
+
   Widget iconButtonPrint({required RemessaModel filtro}) {
     return IconButton(
       padding: const EdgeInsets.all(0),
@@ -255,6 +291,28 @@ class DesignSystemController extends GetxController
         message: "Arquivos OK!",
       ));
     }
+  }
+
+  void _limparAnalise({required RemessaModel filtro}) {
+    if (filtro.protocolosSemBoletos != null ||
+        filtro.protocolosOk != null ||
+        filtro.arquivosInvalidos != null) {
+      remessasController.limparAnalise(idRemessa: filtro.id);
+      designSystemController.message(MessageModel.info(
+        title: "Limpesa da Analise",
+        message: "Dados limpos!",
+      ));
+    } else {
+      designSystemController.message(MessageModel.info(
+        title: "Limpesa da Analise",
+        message: "Sem dados para limpar!",
+      ));
+    }
+
+    designSystemController.message(MessageModel.info(
+      title: "Limpesa da Analise",
+      message: "Dados limpos!",
+    ));
   }
 
   void _setUpload() {

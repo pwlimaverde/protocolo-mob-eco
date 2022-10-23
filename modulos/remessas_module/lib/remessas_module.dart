@@ -10,3 +10,5 @@ export 'src/features/mapeamento_nomes_arquivo_html/datasources/mapeamento_nomes_
 export 'src/features/mapeamento_nomes_arquivo_html/domain/usecase/mapeamento_nomes_arquivo_html_usecase.dart';
 export 'src/features/upload_analise_arquivos_firebase/datasources/upload_analise_arquivos_firebase_datasource.dart';
 export 'src/features/upload_analise_arquivos_firebase/domain/usecase/upload_analise_arquivos_firebase_usecase.dart';
+export 'src/features/limpar_analise_arquivos_firebase/datasources/limpar_analise_arquivos_firebase_datasource.dart';
+export 'src/features/limpar_analise_arquivos_firebase/domain/usecase/limpar_analise_arquivos_firebase_usecase.dart';
