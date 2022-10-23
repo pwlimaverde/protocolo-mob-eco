@@ -13,6 +13,9 @@ dependencies:
     sdk: flutter
   dependencies_module:
     path: ../dependencies_module
+  syncfusion_flutter_pdf: ^20.3.50
+  printing: ^5.9.3
+  archive: ^3.3.2
 
 dev_dependencies:
   flutter_test:

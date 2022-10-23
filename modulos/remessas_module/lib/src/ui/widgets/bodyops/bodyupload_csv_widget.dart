@@ -70,11 +70,12 @@ _todasRemessasList() {
           String nomeRemessa = remessaModel.nomeArquivo.length >= 100
               ? remessaModel.nomeArquivo.substring(0, 100)
               : remessaModel.nomeArquivo;
+
           return Center(
             child: Card(
               elevation: 0.5,
               child: SizedBox(
-                width: 750,
+                width: 600,
                 child: ListTile(
                   title: Text(nomeRemessa),
                   subtitle: Column(
@@ -98,6 +99,17 @@ _todasRemessasList() {
                                 )
                               : Container()
                           : Container(),
+                      // Padding(
+                      //   padding: const EdgeInsets.all(15.0),
+                      //   child: LinearPercentIndicator(
+                      //     animation: true,
+                      //     lineHeight: 20.0,
+                      //     animationDuration: 2000,
+                      //     percent: posicao.value,
+                      //     center: Text("${posicao * 100} %"),
+                      //     progressColor: Colors.greenAccent,
+                      //   ),
+                      // ),
                     ],
                   ),
                   trailing: SizedBox(
