@@ -120,7 +120,7 @@ class RemessasController extends GetxController
                 for (Uint8List pdf in compare) {
                   arquivosOk.add({
                     "ID Cliente": idCompare,
-                    "ID Remessa": remessa.id,
+                    "Cliente": boleto.cliente,
                     "Arquivo": pdf,
                     "Index": indexArquivoOk,
                   });
@@ -196,7 +196,7 @@ class RemessasController extends GetxController
     document.pageSettings.margins = PdfMargins()..all = 5;
     final List<int> bytes = document.saveSync();
     Map<String, Uint8List> map = {
-      '${mapArquivoPdf["Index"] + 1} - ${mapArquivoPdf["ID Cliente"]} - ${mapArquivoPdf["ID Remessa"]}.pdf':
+      '${mapArquivoPdf["Index"] + 1} - ${mapArquivoPdf["ID Cliente"]} - ${mapArquivoPdf["Cliente"]}.pdf':
           Uint8List.fromList(bytes)
     };
     return map;
