@@ -119,7 +119,7 @@ packages:
       path: "../modulos/design_system_module"
       relative: true
     source: path
-    version: "0.0.1"
+    version: "0.0.3"
   equatable:
     dependency: transitive
     description:
