@@ -1,7 +1,7 @@
 name: design_system_module
 description: Modulo responsável pelo gerenciamento do designer.
 publish_to: 'none'
-version: 0.0.1
+version: 0.0.3
 homepage:
 
 environment:

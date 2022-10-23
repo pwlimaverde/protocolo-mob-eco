@@ -6,21 +6,28 @@ import 'package:dependencies_module/dependencies_module.dart';
 import 'package:flutter/material.dart';
 import 'package:remessas_module/src/utils/errors/erros_remessas.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
+import 'features/carregar_imagem_modelo_firebase/domain/usecase/carregar_imagem_modelo_firebase_usecase.dart';
+import 'features/limpar_analise_arquivos_firebase/domain/usecase/limpar_analise_arquivos_firebase_usecase.dart';
 import 'utils/parametros/parametros_remessas_module.dart';
 
 class RemessasController extends GetxController
     with GetSingleTickerProviderStateMixin {
+  final CarregarImagemModeloFirebaseUsecase carregarImagemModeloFirebaseUsecase;
   final UploadArquivoHtmlPresenter uploadArquivoHtmlPresenter;
   final CarregarRemessasFirebaseUsecase carregarRemessasFirebaseUsecase;
   final CarregarBoletosFirebaseUsecase carregarBoletosFirebaseUsecase;
   final MapeamentoNomesArquivoHtmlUsecase mapeamentoNomesArquivoHtmlUsecase;
+  final LimparAnaliseArquivosFirebaseUsecase
+      limparAnaliseArquivosFirebaseUsecase;
   final UploadAnaliseArquivosFirebaseUsecase
       uploadAnaliseArquivosFirebaseUsecase;
   RemessasController({
+    required this.carregarImagemModeloFirebaseUsecase,
     required this.uploadArquivoHtmlPresenter,
     required this.carregarRemessasFirebaseUsecase,
     required this.carregarBoletosFirebaseUsecase,
     required this.mapeamentoNomesArquivoHtmlUsecase,
+    required this.limparAnaliseArquivosFirebaseUsecase,
     required this.uploadAnaliseArquivosFirebaseUsecase,
   });
 
@@ -45,7 +52,8 @@ class RemessasController extends GetxController
   @override
   void onReady() {
     super.onReady();
-    carregarRemessas();
+    _carregarImagemModelo();
+    _carregarRemessas();
   }
 
   @override
@@ -54,7 +62,26 @@ class RemessasController extends GetxController
     return super.onDelete;
   }
 
+  final _imagemModelo = Rxn<Uint8List>();
+
+  Uint8List? get imagemModelo => _imagemModelo.value;
+
   final _listTadasRemessas = <RemessaModel>[].obs;
+
+  Future<void> _carregarImagemModelo() async {
+    final modelo = await carregarImagemModeloFirebaseUsecase(
+      parameters: NoParams(
+        error: ErroUploadArquivo(
+          message: "Erro ao Erro ao carregar os arquivos.",
+        ),
+        showRuntimeMilliseconds: true,
+        nameFeature: "Carregamento de Arquivo",
+      ),
+    );
+    if (modelo.status == StatusResult.success) {
+      _imagemModelo(modelo.result);
+    }
+  }
 
   List<RemessaModel> get listTadasRemessas => _listTadasRemessas
     ..sort(
@@ -74,6 +101,21 @@ class RemessasController extends GetxController
       remessa: remessa,
     );
     designSystemController.statusLoad(false);
+  }
+
+  Future<void> limparAnalise({
+    required String idRemessa,
+  }) async {
+    await limparAnaliseArquivosFirebaseUsecase(
+      parameters: ParametrosLimparAnaliseArquivos(
+        error: ErroUploadArquivo(
+            message:
+                "Erro ao fazer o upload da Remessa para o banco de dados!"),
+        showRuntimeMilliseconds: true,
+        nameFeature: "upload firebase",
+        idRemessa: idRemessa,
+      ),
+    );
   }
 
   Future<void> _uploadNomesArquivos({
@@ -308,7 +350,7 @@ class RemessasController extends GetxController
     }
   }
 
-  Future<void> carregarRemessas() async {
+  Future<void> _carregarRemessas() async {
     _clearLists();
     final uploadFirebase = await carregarRemessasFirebaseUsecase(
       parameters: NoParams(

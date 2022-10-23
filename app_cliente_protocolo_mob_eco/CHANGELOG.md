@@ -1,3 +1,5 @@
+## [0.0.4] - 23/10/2022 
+Feature Limpesa de analise Ok.
 ## [0.0.3] - 23/10/2022 
 Implantação da analise dos arquivos PDF, onde são ordenados e salvos na sequencia correta.
 ## [0.0.2] - 17/10/2022 

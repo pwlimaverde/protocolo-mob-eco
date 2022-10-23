@@ -1,11 +1,44 @@
 import 'package:dependencies_module/dependencies_module.dart';
 import 'package:flutter/material.dart';
 
+import 'features/carregar_configuracao_firebase/domain/usecase/carregar_configuracao_firebase_usecase.dart';
+import 'utils/errors/erros_core.dart';
+
 class CoreModuleController extends GetxController {
+  final CarregarConfiguracaoFirebaseUsecase carregarConfiguracaoFirebaseUsecase;
+
+  CoreModuleController({
+    required this.carregarConfiguracaoFirebaseUsecase,
+  });
+
   @override
   void onInit() {
     super.onInit();
+    _carregarSufixo();
     pageAtual(Get.find<GetStorage>().read("pageAtual"));
+  }
+
+  //Configuração Sufixo
+  final _sufixo = Rxn<String>();
+
+  String? get sufixo => _sufixo.value;
+
+  bool get isSufixo {
+    return _sufixo.value != null && _sufixo.value != "" ? true : false;
+  }
+
+  Future<void> _carregarSufixo() async {
+    final result = await carregarConfiguracaoFirebaseUsecase(
+        parameters: NoParams(
+      error: ErroCarregarConfiguracao(
+        message: "Erro ao Erro ao carregar configuração.",
+      ),
+      showRuntimeMilliseconds: true,
+      nameFeature: "Carregamento de configuração",
+    ));
+    if (result.status == StatusResult.success) {
+      _sufixo(result.result["sufixo"].toString());
+    }
   }
 
   //Controller de Pages
