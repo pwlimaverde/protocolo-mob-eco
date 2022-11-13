@@ -119,31 +119,31 @@ _todasRemessasList() {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        designSystemController.iconButtonPrint(
+                        designSystemController.botaoPrintProtocolo(
                           filtro: remessaModel,
                         ),
                         const SizedBox(
                           width: 15,
                         ),
-                        designSystemController.iconDownloadXlsx(
+                        designSystemController.botaoDownloadXlsx(
                           filtro: remessaModel,
                         ),
                         const SizedBox(
                           width: 15,
                         ),
-                        designSystemController.iconUploadNomesArquivos(
+                        designSystemController.botaoAnalisePdf(
                           filtro: remessaModel,
                         ),
                         const SizedBox(
                           width: 15,
                         ),
-                        designSystemController.iconDownloadAnalitic(
+                        designSystemController.botaoDownloadRelatorio(
                           filtro: remessaModel,
                         ),
                         const SizedBox(
                           width: 15,
                         ),
-                        designSystemController.iconLimparAnalitic(
+                        designSystemController.botaoLimparAnalise(
                           filtro: remessaModel,
                         ),
                       ],

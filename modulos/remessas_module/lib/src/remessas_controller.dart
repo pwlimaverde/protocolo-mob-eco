@@ -1,4 +1,5 @@
 import 'dart:convert';
+// ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 
 import 'package:archive/archive.dart';
@@ -6,8 +7,6 @@ import 'package:dependencies_module/dependencies_module.dart';
 import 'package:flutter/material.dart';
 import 'package:remessas_module/src/utils/errors/erros_remessas.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
-import 'features/carregar_imagem_modelo_firebase/domain/usecase/carregar_imagem_modelo_firebase_usecase.dart';
-import 'features/limpar_analise_arquivos_firebase/domain/usecase/limpar_analise_arquivos_firebase_usecase.dart';
 import 'utils/parametros/parametros_remessas_module.dart';
 
 class RemessasController extends GetxController
@@ -93,14 +92,15 @@ class RemessasController extends GetxController
   }
 
   Future<void> setUploadNomesArquivos({required RemessaModel remessa}) async {
-    designSystemController.statusLoad(true);
+    designSystemController.setLoading(value: 0.0001);
     await _uploadNomesArquivos(
-      arquivosDaRemessa: await _mapeamentoDadosArquivo(
-        listaMapBytes: await _carregarArquivos(),
-      ),
+      arquivosDaRemessa:
+          await compute(_mapeamentoDadosArquivo, await _carregarArquivos()),
       remessa: remessa,
     );
-    designSystemController.statusLoad(false);
+    designSystemController.setLoading(value: 1.0);
+    Future.delayed(const Duration(seconds: 2))
+        .then((value) => designSystemController.setLoading(value: 0.0));
   }
 
   Future<void> limparAnalise({
@@ -123,9 +123,10 @@ class RemessasController extends GetxController
     required RemessaModel remessa,
   }) async {
     try {
+      designSystemController.setLoading(value: 0.26);
+      final boletosOrdenados = await compute(carregarBoletos, remessa);
+
       if (arquivosDaRemessa.isNotEmpty) {
-        List<BoletoModel> boletosOrdenados =
-            await carregarBoletos(remessa: remessa);
         List<dynamic> idsArquivosRemessa = [];
         List<Uint8List> arquivos = [];
         List<Map<String, dynamic>> arquivosOk = [];
@@ -136,6 +137,7 @@ class RemessasController extends GetxController
         List<int> arquivosInvalidos = [];
 
         final testeOK = remessa.protocolosOk;
+
         if (testeOK != null) {
           for (dynamic element in testeOK) {
             idsOk.add(element);
@@ -196,15 +198,17 @@ class RemessasController extends GetxController
           "Protocolos sem boletos": idsError,
           "Arquivos invalidos": arquivosInvalidos
         };
+        designSystemController.setLoading(value: 0.30);
         _enviarNovaAnalise(
           analise: result,
           model: remessa,
         );
-
+        designSystemController.setLoading(value: 0.35);
         _processamentoPdf(
             arquivosPdfOk: arquivosOk, nomeRemessa: remessa.nomeArquivo);
       }
     } catch (e) {
+      designSystemController.setLoading(value: 0.0);
       designSystemController.message(
         MessageModel.error(
           title: 'Upload de Remessa',
@@ -219,15 +223,18 @@ class RemessasController extends GetxController
     required List<Map<String, dynamic>> arquivosPdfOk,
     required String nomeRemessa,
   }) async {
+    designSystemController.setLoading(value: 0.55);
     final Iterable<Future<Map<String, Uint8List>>> salvarPdfFuturo =
-        arquivosPdfOk.map(_salvarPdf);
+        arquivosPdfOk.map((arquivo) => compute(_salvarPdf, arquivo));
 
     final Future<Iterable<Map<String, Uint8List>>> waitedRemessas =
         Future.wait(salvarPdfFuturo);
 
-    final teste = await waitedRemessas.then((value) => value.toList());
+    final pdfs = await waitedRemessas.then((value) => value.toList());
+    designSystemController.setLoading(value: 0.70);
 
-    _downloadFilesAsZIP(files: teste, nomeRemessa: nomeRemessa);
+    compute(_downloadFilesAsZIP, {"files": pdfs, "nomeRemessa": nomeRemessa});
+    designSystemController.setLoading(value: 0.95);
   }
 
   Future<Map<String, Uint8List>> _salvarPdf(
@@ -252,46 +259,76 @@ class RemessasController extends GetxController
       ..click();
   }
 
-  _downloadFilesAsZIP(
-      {required List<Map<String, Uint8List>> files,
-      required String nomeRemessa}) {
-    var encoder = ZipEncoder();
-    var archive = Archive();
+  _downloadFilesAsZIP(Map<String, dynamic> zips) {
+    final files = zips["files"];
+    final nomeRemessa = zips["nomeRemessa"];
+    const tamanhoDownload = 500;
+    final quantidadeDePdfs = files.length;
+    final quantidadeDeZips =
+        ((quantidadeDePdfs / tamanhoDownload) + 0.4999).round();
+    var filesPart = files;
 
-    for (Map<String, Uint8List> file in files) {
-      ArchiveFile archiveFiles = ArchiveFile.noCompress(
-          file.keys.first, file.values.first.lengthInBytes, file.values.first);
-      archive.addFile(archiveFiles);
+    for (int i = 0; i < quantidadeDeZips; i++) {
+      final testeLoading = ((i + 1) * 100) / quantidadeDeZips;
+      final testeLoading2 = (testeLoading * 25) / 100;
+      designSystemController.setLoading(
+          value: 0.7 + (testeLoading2 / 100).round());
+      print(0.7 + (testeLoading2 / 100));
+      final teste = filesPart.take(tamanhoDownload);
+      var encoder = ZipEncoder();
+      var archive = Archive();
+
+      for (Map<String, Uint8List> file in teste) {
+        ArchiveFile archiveFiles = ArchiveFile.noCompress(file.keys.first,
+            file.values.first.lengthInBytes, file.values.first);
+        archive.addFile(archiveFiles);
+      }
+
+      final outputStream = OutputStream(
+        byteOrder: LITTLE_ENDIAN,
+      );
+      final bytes = encoder.encode(archive,
+          level: Deflate.BEST_COMPRESSION, output: outputStream);
+
+      saveAndLaunchFile(bytes!,
+          "${i + 1} de $quantidadeDeZips - Remessa ordenada - $nomeRemessa.zip");
+
+      if (filesPart.length > tamanhoDownload) {
+        filesPart.removeRange(0, tamanhoDownload);
+      }
     }
-
-    final outputStream = OutputStream(
-      byteOrder: LITTLE_ENDIAN,
-    );
-    final bytes = encoder.encode(archive,
-        level: Deflate.BEST_COMPRESSION, output: outputStream);
-
-    saveAndLaunchFile(bytes!, "Remessa ordenada - $nomeRemessa.zip");
   }
 
   Future<bool> _enviarNovaAnalise({
     required RemessaModel model,
     required Map<String, List<int>> analise,
   }) async {
-    final uploadFirebase = await uploadAnaliseArquivosFirebaseUsecase(
-      parameters: ParametrosUploadAnaliseArquivos(
-        error: ErroUploadArquivo(
-            message:
-                "Erro ao fazer o upload da Remessa para o banco de dados!"),
-        showRuntimeMilliseconds: true,
-        nameFeature: "upload firebase",
-        mapAliseArquivos: analise,
-        remessa: model,
-      ),
-    );
-
+    final uploadFirebase = await compute(
+        _uploadAnalise,
+        ParametrosUploadAnaliseArquivos(
+          error: ErroUploadArquivo(
+              message:
+                  "Erro ao fazer o upload da Remessa para o banco de dados!"),
+          showRuntimeMilliseconds: true,
+          nameFeature: "upload firebase",
+          mapAliseArquivos: analise,
+          remessa: model,
+        ));
+    // final uploadFirebase2 = await uploadAnaliseArquivosFirebaseUsecase(
+    //   parameters: ParametrosUploadAnaliseArquivos(
+    //     error: ErroUploadArquivo(
+    //         message:
+    //             "Erro ao fazer o upload da Remessa para o banco de dados!"),
+    //     showRuntimeMilliseconds: true,
+    //     nameFeature: "upload firebase",
+    //     mapAliseArquivos: analise,
+    //     remessa: model,
+    //   ),
+    // );
     if (uploadFirebase.status == StatusResult.success) {
       return true;
     } else {
+      designSystemController.setLoading(value: 0.0);
       designSystemController.message(
         MessageModel.error(
           title: 'Upload de Analise Firebase',
@@ -302,8 +339,17 @@ class RemessasController extends GetxController
     }
   }
 
+  Future<ReturnSuccessOrError<bool>> _uploadAnalise(
+      ParametrosUploadAnaliseArquivos parametros) async {
+    final result = await uploadAnaliseArquivosFirebaseUsecase(
+      parameters: parametros,
+    );
+    return result;
+  }
+
   Future<List<Map<int, Uint8List>>> _mapeamentoDadosArquivo(
-      {required List<Map<String, Uint8List>> listaMapBytes}) async {
+      List<Map<String, Uint8List>> listaMapBytes) async {
+    designSystemController.setLoading(value: 0.05);
     final mapeamento = await mapeamentoNomesArquivoHtmlUsecase(
       parameters: ParametrosMapeamentoArquivoHtml(
         error: ErroUploadArquivo(
@@ -315,8 +361,10 @@ class RemessasController extends GetxController
       ),
     );
     if (mapeamento.status == StatusResult.success) {
+      designSystemController.setLoading(value: 0.2);
       return mapeamento.result;
     } else {
+      designSystemController.setLoading(value: 0.0);
       designSystemController.message(
         MessageModel.error(
           title: 'Mapeamento de arquivos',
@@ -328,6 +376,7 @@ class RemessasController extends GetxController
   }
 
   Future<List<Map<String, Uint8List>>> _carregarArquivos() async {
+    designSystemController.setLoading(value: 0.001);
     final arquivos = await uploadArquivoHtmlPresenter(
       parameters: NoParams(
         error: ErroUploadArquivo(
@@ -337,9 +386,11 @@ class RemessasController extends GetxController
         nameFeature: "Carregamento de Arquivo",
       ),
     );
+    designSystemController.setLoading(value: 0.01);
     if (arquivos.status == StatusResult.success) {
       return arquivos.result;
     } else {
+      designSystemController.setLoading(value: 0.0);
       designSystemController.message(
         MessageModel.error(
           title: 'Carregamento de arquivos',
@@ -365,25 +416,27 @@ class RemessasController extends GetxController
     }
   }
 
-  Future<List<BoletoModel>> carregarBoletos(
-      {required RemessaModel remessa}) async {
-    final carregarBoletos = await carregarBoletosFirebaseUsecase(
-      parameters: ParametrosCarregarBoletos(
-        error: ErroUploadArquivo(message: "Error ao carregar os boletos"),
-        showRuntimeMilliseconds: true,
-        nameFeature: "Carregar Boletos",
-        remessaCarregada: remessa,
-      ),
-    );
-
-    if (carregarBoletos.status == StatusResult.success) {
-      final List<BoletoModel> boletos = carregarBoletos.result;
-      boletos.sort(
-        (a, b) => a.cliente.compareTo(b.cliente),
+  Future<List<BoletoModel>> carregarBoletos(RemessaModel remessa) async {
+    try {
+      final carregarBoletos = await carregarBoletosFirebaseUsecase(
+        parameters: ParametrosCarregarBoletos(
+          error: ErroUploadArquivo(message: "Error ao carregar os boletos"),
+          showRuntimeMilliseconds: true,
+          nameFeature: "Carregar Boletos",
+          remessaCarregada: remessa,
+        ),
       );
-
-      return boletos;
-    } else {
+      if (carregarBoletos.status == StatusResult.success) {
+        final List<BoletoModel> boletos = carregarBoletos.result;
+        boletos.sort(
+          (a, b) => a.cliente.compareTo(b.cliente),
+        );
+        return boletos;
+      } else {
+        throw Exception(
+            "Erro ao carregar os dados dos boletos do banco de dados");
+      }
+    } catch (e) {
       throw Exception(
           "Erro ao carregar os dados dos boletos do banco de dados");
     }

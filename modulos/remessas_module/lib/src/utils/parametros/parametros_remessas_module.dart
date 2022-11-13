@@ -103,3 +103,24 @@ class ParametrosProcessamentoArquivoHtml implements ParametersReturnResult {
     required this.nameFeature,
   });
 }
+
+class ParametrosGerarCodigoDeBarras implements ParametersReturnResult {
+  final BoletoModel boleto;
+  final String? sufixo;
+  final bool isSufixo;
+  @override
+  final AppError error;
+  @override
+  final bool showRuntimeMilliseconds;
+  @override
+  final String nameFeature;
+
+  ParametrosGerarCodigoDeBarras({
+    required this.boleto,
+    required this.sufixo,
+    required this.isSufixo,
+    required this.error,
+    required this.showRuntimeMilliseconds,
+    required this.nameFeature,
+  });
+}

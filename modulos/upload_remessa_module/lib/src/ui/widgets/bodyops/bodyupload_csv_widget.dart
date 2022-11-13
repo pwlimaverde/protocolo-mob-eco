@@ -114,13 +114,13 @@ _uploadRemessaList() {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        designSystemController.iconButtonPrint(
+                        designSystemController.botaoPrintProtocolo(
                           filtro: remessaModel,
                         ),
                         const SizedBox(
                           width: 15,
                         ),
-                        designSystemController.iconDownloadXlsx(
+                        designSystemController.botaoDownloadXlsx(
                           filtro: remessaModel,
                         ),
                       ],
@@ -183,13 +183,13 @@ _duplicadasRemessaList() {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        designSystemController.iconButtonPrint(
+                        designSystemController.botaoPrintProtocolo(
                           filtro: remessaModel,
                         ),
                         const SizedBox(
                           width: 15,
                         ),
-                        designSystemController.iconDownloadXlsx(
+                        designSystemController.botaoDownloadXlsx(
                           filtro: remessaModel,
                         ),
                       ],

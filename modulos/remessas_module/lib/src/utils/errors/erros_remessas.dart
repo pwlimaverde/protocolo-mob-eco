@@ -38,3 +38,16 @@ class ErroUploadArquivo implements AppError {
     return "ErroUploadRemessa - $message";
   }
 }
+
+class ErroGerarCodigoDeBarras implements AppError {
+  @override
+  String message;
+  ErroGerarCodigoDeBarras({
+    required this.message,
+  });
+
+  @override
+  String toString() {
+    return "ErroUploadRemessa - $message";
+  }
+}
