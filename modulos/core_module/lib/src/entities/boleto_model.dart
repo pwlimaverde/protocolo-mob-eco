@@ -136,6 +136,19 @@ class BoletoModel {
     ];
   }
 
+  String get codigoDeBarras {
+    final sufixo = coreModuleController.sufixo.toString().substring(0, 3);
+    final codBoleto = numeroDeBoleto.toString();
+    String complementoZero = "";
+    for (var zero = 0; zero < 14 - (codBoleto.length); zero++) {
+      complementoZero = "${complementoZero}0";
+    }
+    final tipo = formaDeCobranca!.contains("CARNE") ? "C" : "B";
+    const prefixo = "MB";
+    final padraoNovo = "$prefixo$tipo$complementoZero$codBoleto$sufixo";
+    return padraoNovo;
+  }
+
   factory BoletoModel.fromMapCsv({
     required Map<String, dynamic> map,
     required String idRemessa,
@@ -143,14 +156,18 @@ class BoletoModel {
     final boleto = BoletoModel(
       idRemessa: idRemessa,
       idCliente: int.tryParse(map['ID Cliente'].toString()) ?? 0,
-      cliente: map['Cliente'],
+      cliente: map['Cliente'].length <= 8
+          ? "Cliente MOB ${int.tryParse(map['Documento'].toString()) ?? 0}"
+          : map['Cliente'],
       documento: int.tryParse(map['Documento'].toString()) ?? 0,
       email: map['Email'] ?? '',
       telefoneFixo: int.tryParse(map['Telefone Fixo']) ?? 0,
       telefoneMovel: int.tryParse(map['Telefone Movel']) ?? 0,
       idContrato: int.tryParse(map['ID Contrato'].toString()) ?? 0,
-      dataHabilitacaoContrato: Timestamp.fromDate(
-          DateTime.parse(map['Data Habilitacao contrato'].split(" ")[0])),
+      dataHabilitacaoContrato: map['Data Habilitacao contrato'] != "."
+          ? Timestamp.fromDate(
+              DateTime.parse(map['Data Habilitacao contrato'].split(" ")[0]))
+          : Timestamp.fromDate(DateTime.now()),
       numeroDeBoleto: map['Número de Boleto'] ?? '',
       formaDeCobranca: map['Forma de Cobrança'] ?? '',
       dataVencimentoFatura: Timestamp.fromDate(DateTime.parse(
