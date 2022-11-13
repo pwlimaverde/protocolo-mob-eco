@@ -5,8 +5,8 @@ version: 0.0.1
 homepage:
 
 environment:
-  sdk: '>=2.18.0 <3.0.0'
-  flutter: ">=3.3.2"
+  sdk: '>=2.18.4 <3.0.0'
+  flutter: ">=3.3.8"
 
 dependencies:
   flutter:
@@ -46,10 +46,10 @@ dependencies:
   csv: ^5.0.1
   uuid: ^3.0.6
   percent_indicator: ^4.2.2
+  file_picker: ^5.2.2
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
+
   flutter_lints: ^2.0.0
 
 flutter:

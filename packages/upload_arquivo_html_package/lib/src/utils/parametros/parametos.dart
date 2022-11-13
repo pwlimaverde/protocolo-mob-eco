@@ -18,3 +18,20 @@ class ParametrosLeituraArquivoHtml implements ParametersReturnResult {
     required this.nameFeature,
   });
 }
+
+class ParametrosLeituraArquivoFilePicker implements ParametersReturnResult {
+  final List<Uint8List> listaArquivosFilePicker;
+  @override
+  final AppError error;
+  @override
+  final bool showRuntimeMilliseconds;
+  @override
+  final String nameFeature;
+
+  ParametrosLeituraArquivoFilePicker({
+    required this.listaArquivosFilePicker,
+    required this.error,
+    required this.showRuntimeMilliseconds,
+    required this.nameFeature,
+  });
+}

@@ -37,39 +37,6 @@ class MapeamentoNomesArquivoHtmlDatasource
     }
   }
 
-//   List<int> _processamentoCsv({
-//     required Map<String, Uint8List> map,
-//   }) {
-//     try {
-//       final decoderByte = convert.latin1.decode(map.values.first);
-//       List<List<dynamic>> listCsv = [];
-//       List<int> idsArquivosList = [];
-
-//       listCsv.addAll(
-//           const CsvToListConverter(fieldDelimiter: ";").convert(decoderByte));
-
-//       if (listCsv.isNotEmpty) {
-//         for (List<dynamic> nome in listCsv) {
-//           final idArquivo = int.tryParse(
-//               nome[0].toString().split("_").length > 1
-//                   ? nome[0].toString().split("_")[1]
-//                   : "");
-//           final nomeDuplicado =
-//               idsArquivosList.where((element) => element == idArquivo).length ==
-//                   1;
-//           if (idArquivo != null && !nomeDuplicado) {
-//             idsArquivosList.add(idArquivo);
-//           }
-//         }
-//       }
-//       return idsArquivosList;
-//     } catch (e) {
-//       final listCatch = <int>[];
-//       return listCatch;
-//     }
-//   }
-// }
-
   Map<int, Uint8List> _processamentoPdf({required Map<String, Uint8List> map}) {
     Map<int, Uint8List> arquivoProcessado = {};
     final nomeArquivo = map.keys.first;

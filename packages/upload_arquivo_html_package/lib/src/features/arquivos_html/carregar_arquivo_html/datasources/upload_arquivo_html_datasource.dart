@@ -9,10 +9,8 @@ class UploadArquivoHtmlDatasource implements Datasource<List<html.File>> {
     final uploadInput = html.FileUploadInputElement();
     uploadInput.multiple = true;
     uploadInput.click();
-
     final result = await uploadInput.onChange.first.then((_) async {
       List<html.File>? files = uploadInput.files;
-
       if (files != null && files.isNotEmpty) {
         return files;
       } else {
